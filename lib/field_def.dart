@@ -1,4 +1,5 @@
-enum ModelFieldType {
+/// Database and code type of field
+enum FieldType {
   string,
   int,
   double,
@@ -6,9 +7,9 @@ enum ModelFieldType {
   datetime,
 }
 /// Defines a field on a model
-class ModelField {
+class FieldDef {
   String key;
-  ModelFieldType type;
+  FieldType type;
 
   // Consider adding: validators
 }
