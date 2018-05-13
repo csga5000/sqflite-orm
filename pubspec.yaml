@@ -8,6 +8,7 @@ dependencies:
   flutter:
     sdk: flutter
   sqflite: any
+  meta: any
 
 dev_dependencies:
   flutter_test:

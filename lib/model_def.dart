@@ -1,3 +1,4 @@
+import 'orm.dart';
 import 'relationship.dart';
 import 'field_def.dart';
 
@@ -5,29 +6,37 @@ import 'field_def.dart';
 class ModelDef {
   String name;
   String tableName;
-  Map<String, FieldDef> fieldDefsMap;
-  List<FieldDef> get fieldDefs => fieldDefsMap.values;
+  FieldDef primaryKey;
+  Map<String, FieldDef> fieldDefsMap = {};
+  List<FieldDef> get fieldDefs => fieldDefsMap.values.toList();
   set fieldDefs(List<FieldDef> fieldDefs) => fieldDefs.forEach((fd) => fieldDefsMap[fd.key] = fd);
   List<Relationship> relationships;
 
   /// Creates a model definition
   /// `name` is used for other model defs
   /// `tableName` defaults to `name+'s'`, and is used for sql queries
+  /// `primaryKey` the column def for the primary key
   /// `fieldDefs` defines all the datapoints to be stored in this model (and the DB) (except foreign keys, which are generated from relationships)
   /// `relationships` is an array of relationships to other tables
-  ModelDef({this.name, this.tableName, List<FieldDef> fieldDefs = const [], this.relationships = const []}) {
+  ModelDef({this.name, this.tableName, this.primaryKey, List<FieldDef> fieldDefs = const [], this.relationships = const []}) {
     this.fieldDefs = fieldDefs;
     this.tableName = this.tableName ?? (this.name+'s');
   }
 
   String createScript() {
-    return ["CREATE TABLE $tableName", _fieldSql(), _fkSql()].join(' ')+';';
+    var create = [
+      "CREATE TABLE $tableName (\n",
+      _fieldSql(),
+      _fkSql()
+    ].join('');
+    //Remove ,\n add \n);
+    return create.replaceRange(create.length-2, create.length, '\n);');
   }
 
   String _fieldSql() {
-    var fieldSql = '';
+    var fieldSql = [primaryKey.key, _fieldTypeFor(primaryKey), 'PRIMARY KEY'].join("\t")+',\n';
     this.fieldDefs.forEach((f) {
-      fieldSql += [f.key, _fieldTypeFor(f)].join("\t")+',';
+      fieldSql += [f.key, _fieldTypeFor(f)].join("\t")+',\n';
     });
     return fieldSql;
   }
@@ -55,11 +64,14 @@ class ModelDef {
         //Except if not defined
         //Use that to build column,
         //Add FOREIGN KEY(other_id) REFERENCES other(id)
-        fkSql += """
-          
-        """;
+        ModelDef relatedTo = Orm.modelDefsMap[r.relatedTo];
+        FieldDef related = relatedTo.primaryKey.key == r.toKey ? relatedTo.primaryKey : relatedTo.fieldDefsMap[r.toKey];
+        fkSql += "${r.fromKey}\t${_fieldTypeFor(related)},\n";
+        if (r.useForeignKey)
+          fkSql += "FOREIGN KEY(${r.fromKey}) REFERENCES other(${r.toKey}),\n";
       }
     });
+    return fkSql;
   }
 
   //Todo:  We can make migrations easy by allowing re-creation of tables

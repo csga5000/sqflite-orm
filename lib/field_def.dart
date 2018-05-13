@@ -11,5 +11,6 @@ class FieldDef {
   String key;
   FieldType type;
 
+  FieldDef({this.key, this.type});
   // Consider adding: validators
 }
