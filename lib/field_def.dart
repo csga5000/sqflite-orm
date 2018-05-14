@@ -1,3 +1,5 @@
+import 'package:meta/meta.dart';
+
 /// Database and code type of field
 enum FieldType {
   string,
@@ -11,6 +13,8 @@ class FieldDef {
   String key;
   FieldType type;
 
-  FieldDef({this.key, this.type});
+  bool required = false;
+
+  FieldDef({@required this.key, @required this.type, this.required});
   // Consider adding: validators
 }

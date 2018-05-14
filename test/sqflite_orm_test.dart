@@ -5,8 +5,8 @@ import 'package:sqflite_orm/model_def.dart';
 import 'package:sqflite_orm/field_def.dart';
 import 'package:sqflite_orm/relationship.dart';
 
-void main() {
-  test('adds one to input values', () {
+void main() async {
+  test('Generates an appropriate create script, including foreign table keys', () async {
     ModelDef company = new ModelDef(
       name: 'company',
       primaryKey: new FieldDef(
@@ -44,6 +44,7 @@ void main() {
       ]
     );
     Orm.registerModelDefs([company, user]);
+
     expect(user.createScript(), "CREATE TABLE users (\n"+
       "id\tinteger\tPRIMARY KEY,\n" +
       "email\ttext,\n" +
