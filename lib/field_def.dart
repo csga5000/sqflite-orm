@@ -13,8 +13,8 @@ class FieldDef {
   String key;
   FieldType type;
 
-  bool required = false;
+  bool isRequired = false;
 
-  FieldDef({@required this.key, @required this.type, this.required});
+  FieldDef({@required this.key, @required this.type, this.isRequired});
   // Consider adding: validators
 }

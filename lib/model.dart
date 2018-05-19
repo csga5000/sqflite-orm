@@ -22,7 +22,7 @@ class Model {
     if (data[def.primaryKey.key] == null)
       errors.add('Primary key must be defined!');
 
-    errors.addAll(def.fieldDefs.where((fd) => fd.required && data[fd.key] == null)
+    errors.addAll(def.fieldDefs.where((fd) => fd.isRequired && data[fd.key] == null)
         .map((fd) => '`${fd.key}` must be defined!'));
 
     if (errors.length > 0)
@@ -30,16 +30,15 @@ class Model {
   }
 
   Future<bool> exists() async {
-    return (await Orm.database.query(def.tableName, where: '${def.primaryKey.key} = ', whereArgs: [id])).length > 0;
+    return (await Orm.database.query(def.tableName, where: '${def.primaryKey.key} = ?', whereArgs: [id])).length > 0;
   }
 
   void save() async {
-    if (fromLocalDb && id != null && await exists()) {
-      //todo: create
-    }
-    else {
-      //todo: delete
-    }
+    //TODO: If this fails due to too many keys being provided, we'll need to add a way to get only actual fields.
+    if (fromLocalDb && id != null && await exists())
+      await Orm.database.update(def.tableName, data, where: '${def.primaryKey.key} = ?', whereArgs: [id]);
+    else
+      await Orm.database.insert(def.tableName, data);
   }
 
   operator [](String key) => data[key];
