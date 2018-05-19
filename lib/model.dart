@@ -11,14 +11,14 @@ class Model {
 
   bool fromLocalDb;
 
-  Model({@required this.def, this.data = const {}, this.fromLocalDb}) {
+  Model({@required this.def, this.data = const {}, this.fromLocalDb = false}) {
     validate();
   }
 
   dynamic get id => data[def.primaryKey.key];
 
   void validate() {
-    List<String> errors;
+    List<String> errors = [];
     if (data[def.primaryKey.key] == null)
       errors.add('Primary key must be defined!');
 

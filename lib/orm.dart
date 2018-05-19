@@ -28,6 +28,14 @@ class Orm {
     mds.forEach((md) => registerModelDef(md));
   }
 
+  // Model interacting functions
+
+  /// Creates a new model instance based on the name and optional data
+  /// `modelName` name that corresponds to the model_def you'd like to create a model with
+  static Model create(String modelName, {Map<String, dynamic> data}) {
+    return new Model(def: modelDefsMap[modelName], data: data);
+  }
+
   // SQL getting functions
 
   static Iterable<String> createAllScripts() {
@@ -39,7 +47,7 @@ class Orm {
   /// `include` specifies related tables to include, in format like `['relatedTable', {'tableWithExtraRelations': ['thisTablesRelations']}, {'someOtherTable': ['someRelation', 'someRelation']}]`
   /// `where` Where clause
   /// `whereArgs` Where args
-  static Future<Iterable<Model>> list({@required String table, List<dynamic> include, String where, List<String> whereArgs}) async {
+  static Future<Iterable<Model>> list({@required String table, Iterable<dynamic> include, String where, List<String> whereArgs}) async {
     ModelDef queryTable = modelDefsMap[table];
     Iterable<Map<String, dynamic>> res = (await database.query(queryTable.tableName, where: where, whereArgs: whereArgs));
     Iterable<Model> models = res.map((m) => new Model(
@@ -68,7 +76,7 @@ class Orm {
           includeName = map.keys.first;
           recursiveIncludes = map[includeName];
         }
-        List<Model> includes = await list(table: i, include: recursiveIncludes, where: "$toKey in (?)", whereArgs: [_sanatizeArray(ids)]);
+        Iterable<Model> includes = await list(table: i, include: recursiveIncludes, where: "$toKey in (?)", whereArgs: [_sanatizeArray(ids)]);
         includes.forEach((i) {
           var m = modelsMap[i.data[toKey]];
           if (includeRelationship.relationship == RelationshipType.hasMany) {
@@ -85,7 +93,7 @@ class Orm {
 
     return models;
   }
-  static String _sanatizeArray(List<dynamic> items) {
+  static String _sanatizeArray(Iterable<dynamic> items) {
     //Numbers and such should serialize fine, strings jsut need quotes
     return items.map((i) => i is String ? "'$i+'" : i.toString())
       .join(', ');
